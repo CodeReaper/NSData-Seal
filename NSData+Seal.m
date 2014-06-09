@@ -61,7 +61,9 @@
     json[@"token"] = token;
     json[@"payload"] = payload;
 
-    return [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+    [json release];
+    return jsonData;
 }
 
 - (NSData *)openWithPrivateKey:(SecKeyRef)privateKey
@@ -85,6 +87,8 @@
                   tokenBytes,
                   &tokenBytesLength);
 
+    [tokenData release];
+
     size_t usedBuffer;
     size_t bufferSize = payloadData.length + kCCKeySizeMinRC4;
     void *buffer = malloc(bufferSize);
@@ -101,6 +105,7 @@
                                           bufferSize,
                                           &usedBuffer);
     free(tokenBytes);
+    [payloadData release];
 
     if (cryptStatus != kCCSuccess) {
         free(buffer);
@@ -147,7 +152,7 @@
 
     CFArrayRef items = CFArrayCreate(NULL, 0, 0, NULL);
 
-    OSStatus securityError = SecPKCS12Import((__bridge CFDataRef)self, (__bridge CFDictionaryRef)options, &items);
+    OSStatus securityError = SecPKCS12Import((__bridge CFDataRef)self, (CFDictionaryRef)CFBridgingRelease(options), &items);
 
     if (securityError == noErr && CFArrayGetCount(items) > 0) {
         CFDictionaryRef identityDict = CFArrayGetValueAtIndex(items, 0);
