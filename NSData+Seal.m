@@ -9,19 +9,21 @@
 #import "NSData+Seal.h"
 #import <CommonCrypto/CommonCryptor.h>
 
+#define kSealTokenSize 16
+
 @implementation NSData (Seal)
 
 - (NSData *)sealWithPublicKey:(SecKeyRef)publicKey
 {
-    uint8_t iv[128];
-    arc4random_buf(&iv, 128);
+    uint8_t iv[kSealTokenSize];
+    arc4random_buf(&iv, kSealTokenSize);
 
     size_t tokenBytesLength = 256;
     uint8_t *tokenBytes =  (uint8_t *)malloc(sizeof(uint8_t) * tokenBytesLength);
     SecKeyEncrypt(publicKey,
                   kSecPaddingPKCS1,
                   iv,
-                  128,
+                  kSealTokenSize,
                   tokenBytes,
                   &tokenBytesLength);
 
@@ -37,7 +39,7 @@
                                           kCCAlgorithmRC4,
                                           kCCModeRC4,
                                           iv,
-                                          128,
+                                          kSealTokenSize,
                                           NULL,
                                           self.bytes,
                                           self.length,
@@ -74,7 +76,7 @@
     NSData *tokenData = [[NSData alloc] initWithBase64EncodedString:token options:0];
     NSData *payloadData = [[NSData alloc] initWithBase64EncodedString:payload options:0];
 
-    size_t tokenBytesLength = 256;
+    size_t tokenBytesLength = kSealTokenSize;
     uint8_t *tokenBytes =  (uint8_t *)malloc(sizeof(uint8_t) * tokenBytesLength);
     SecKeyDecrypt(privateKey,
                   kSecPaddingPKCS1,
@@ -91,7 +93,7 @@
                                           kCCAlgorithmRC4,
                                           kCCModeRC4,
                                           tokenBytes,
-                                          128,
+                                          tokenBytesLength,
                                           NULL,
                                           payloadData.bytes,
                                           payloadData.length,
