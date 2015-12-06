@@ -150,7 +150,7 @@
 
     [options setObject:password forKey:(__bridge id)kSecImportExportPassphrase];
 
-    CFArrayRef items = CFArrayCreate(NULL, 0, 0, NULL);
+    CFArrayRef items = NULL;
 
     OSStatus securityError = SecPKCS12Import((__bridge CFDataRef)self, (CFDictionaryRef)CFBridgingRelease(options), &items);
 
